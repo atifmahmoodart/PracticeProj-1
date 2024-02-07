@@ -1,21 +1,19 @@
+const Joi = require('joi');
+
 const responseCodes = require('../../constants/responseCodes');
-const responseMessages = require('../../constants/responseMessages');
 
 function userLoginValidation(req, res, next) {
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    const schema = Joi.object({
+        email: Joi.string().email().required(),
+        password: Joi.string().required(),
+    });
 
-    if (!req.body.email) {
-        return res.status(responseCodes.BAD_REQUEST).json({ error: responseMessages.EMAIL_REQUIRED });
+    const { error } = schema.validate(req.body);
+
+    if (error) {
+        const errorMessage = error.details[0].message.replace(/"/g, ''); // Removing quotes from error message
+        return res.status(responseCodes.BAD_REQUEST).json({ error: errorMessage });
     }
-
-    if (!req.body.password) {
-        return res.status(responseCodes.BAD_REQUEST).json({ error: responseMessages.PASSWORD_REQUIRED });
-    }
-
-    if (!emailRegex.test(req.body.email)) {
-        return res.status(responseCodes.BAD_REQUEST).json({ error: responseMessages.INVALID_EMAIL });
-    }
-
     next();
 }
 
